@@ -1,4 +1,5 @@
 # write your code here
+from collections import namedtuple
 
 
 def get_students_list():
@@ -12,36 +13,51 @@ def get_students_list():
     return students
 
 
-def sort_by_scores(list_of_students, number_to_accept, priority_iteration, biotech, chemistry, engineering, mathematics, physics):
-    sorted_students = sorted(list_of_students, key=lambda x: (-x[2], x[0], x[1]))
-    to_remove = []
+def first_priority_calculation(sorted_students, iteration):
+    calculated_mean_score_list = []
     for i in sorted_students:
-        if i[priority_iteration] == 'Physics' and len(physics) < number_to_accept:
-            physics.append(i)
-            to_remove.append(i)
+        score = ''
+        name = i[0]
+        last_name = i[1]
+        physics_score = i[2]
+        chemistry_score = i[3]
+        math_score = i[4]
+        compscience_score = i[5]
+        the_priority = i[iteration]
+        if the_priority == 'Physics':
+            score = (physics_score + math_score) / 2
+        if the_priority == 'Chemistry':
+            score = chemistry_score
+        if the_priority == 'Mathematics':
+            score = math_score
+        if the_priority == 'Engineering':
+            score = (compscience_score + math_score) / 2
+        if the_priority == 'Biotech':
+            score = (chemistry_score + physics_score) / 2
+        person = [name, last_name, physics_score, chemistry_score, math_score, compscience_score, i[6], i[7], i[8], score]
+        calculated_mean_score_list.append(person)
+    return calculated_mean_score_list
 
-    sorted_students = sorted(list_of_students, key=lambda x: (-x[3], x[0], x[1]))
+
+def first_priority(list_of_students, number_to_accept, iter, biotech, chemistry, engineering, mathematics, physics):
+    to_remove = []
+    sorted_students = sorted(list_of_students, key=lambda x: (-x[9], x[0]))
     for i in sorted_students:
-        if i[priority_iteration] == 'Chemistry' and len(chemistry) < number_to_accept:
+        priority = i[iter]
+        if priority == 'Biotech' and len(biotech) < number_to_accept:
+            biotech.append(i)
+            to_remove.append(i)
+        if priority == 'Chemistry' and len(chemistry) < number_to_accept:
             chemistry.append(i)
             to_remove.append(i)
-
-    sorted_students = sorted(list_of_students, key=lambda x: (-x[4], x[0], x[1]))
-    for i in sorted_students:
-        if i[priority_iteration] == 'Mathematics' and len(mathematics) < number_to_accept:
+        if priority == 'Mathematics' and len(mathematics) < number_to_accept:
             mathematics.append(i)
             to_remove.append(i)
-
-    sorted_students = sorted(list_of_students, key=lambda x: (-x[5], x[0], x[1]))
-    for i in sorted_students:
-        if i[priority_iteration] == 'Engineering' and len(engineering) < number_to_accept:
+        if priority == 'Engineering' and len(engineering) < number_to_accept:
             engineering.append(i)
             to_remove.append(i)
-
-    sorted_students = sorted(list_of_students, key=lambda x: (-x[3], x[0], x[1]))
-    for i in sorted_students:
-        if i[priority_iteration] == 'Biotech' and len(biotech) < number_to_accept:
-            biotech.append(i)
+        if priority == 'Physics' and len(physics) < number_to_accept:
+            physics.append(i)
             to_remove.append(i)
 
     return biotech, chemistry, engineering, mathematics, physics, to_remove
@@ -56,44 +72,71 @@ def remove_accepted_students(list_of_students, list_to_remove):
 
 
 def form_a_list(n_students):
-    global sorted_students
+    global initital_list
     biotech = []
     chemistry = []
     engineering = []
     mathematics = []
     physics = []
     for i in range(6, 9):
-        interative_sort = sort_by_scores(sorted_students, n_students, i, biotech, chemistry, engineering, mathematics, physics)
-        students_to_remove = interative_sort[5]
-        sorted_students = remove_accepted_students(sorted_students, students_to_remove)
+        print(len(initital_list))
+        first_iteration_sort = first_priority_calculation(initital_list, i)
+        initital_list = first_iteration_sort
+        first_distribution = first_priority(initital_list, n_students, i, biotech, chemistry, engineering,
+                                            mathematics, physics)
+        list_to_remove = first_distribution[5]
+        print(len(list_to_remove))
+        initital_list = remove_accepted_students(initital_list, list_to_remove)
+        print(len(initital_list))
     return biotech, chemistry, engineering, mathematics, physics
 
 
 n_students = int(input())
-sorted_students = get_students_list()
+initital_list = get_students_list()
 accepted_students = form_a_list(n_students)
-biotech_students = sorted(accepted_students[0], key=lambda x: (-x[3], x[0], x[1]))
-chemistry_students = sorted(accepted_students[1], key=lambda x: (-x[3], x[0], x[1]))
-engineering_students = sorted(accepted_students[2], key=lambda x: (-x[5], x[0], x[1]))
-mathematics_students = sorted(accepted_students[3], key=lambda x: (-x[4], x[0], x[1]))
-physics_students = sorted(accepted_students[4], key=lambda x: (-x[2], x[0], x[1]))
+biotech_students = sorted(accepted_students[0], key=lambda x: (-x[9], x[0]))
+chemistry_students = sorted(accepted_students[1], key=lambda x: (-x[9], x[0]))
+engineering_students = sorted(accepted_students[2], key=lambda x: (-x[9], x[0]))
+mathematics_students = sorted(accepted_students[3], key=lambda x: (-x[9], x[0]))
+physics_students = sorted(accepted_students[4], key=lambda x: (-x[9], x[0]))
 
 print('Biotech')
-for i in biotech_students:
-    print(i[0], i[1], i[3])
+with open("biotech.txt", "w") as f:
+    for i in biotech_students:
+        string = str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[9])
+        print(string)
+        f.write(string)
+        f.write('\n')
 print()
 print('Chemistry')
-for i in chemistry_students:
-    print(i[0], i[1], i[3])
+with open("chemistry.txt", "w") as f:
+    for i in chemistry_students:
+        string = str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[9])
+        print(string)
+        f.write(string)
+        f.write('')
+        f.write('\n')
 print()
 print('Engineering')
-for i in engineering_students:
-    print(i[0], i[1], i[5])
+with open("engineering.txt", "w") as f:
+    for i in engineering_students:
+        string = str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[9])
+        print(string)
+        f.write(string)
+        f.write('\n')
 print()
 print('Mathematics')
-for i in mathematics_students:
-    print(i[0], i[1], i[4])
+with open("mathematics.txt", "w") as f:
+    for i in mathematics_students:
+        string = str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[9])
+        print(string)
+        f.write(string)
+        f.write('\n')
 print()
 print('Physics')
-for i in physics_students:
-    print(i[0], i[1], i[2])
+with open("physics.txt", "w") as f:
+    for i in physics_students:
+        string = str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[9])
+        print(string)
+        f.write(string)
+        f.write('\n')
